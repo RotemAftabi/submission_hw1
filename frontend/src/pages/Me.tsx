@@ -7,7 +7,6 @@ export default function Me() {
   const navigate = useNavigate();
 
   if (!auth || !auth.user) {
-    // אם המשתמש לא מחובר, מפנים ל-login
     navigate("/login");
     return null;
   }
