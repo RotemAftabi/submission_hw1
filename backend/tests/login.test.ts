@@ -1,37 +1,39 @@
+// tests/login.test.ts
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../expressApp'; 
+import bcrypt from 'bcrypt';
+import app from '../expressApp';      // or wherever your Express app is exported
 import { User } from '../models/User';
 
+jest.setTimeout(20000);
+
 beforeAll(async () => {
-  // Connect to the test database
+  // connect
   await mongoose.connect(process.env.MONGODB_CONNECTION_URL!);
-  
-  const existing = await User.findOne({ username: 'testuser' });
-  if (!existing) {
-    await request(app)
-      .post('/users')           
-      .send({
-        name: 'Test User',
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 's3cret'
-      })
-      .expect(201);
-  }
+
+  // remove any leftover testuser
+  await User.deleteOne({ username: 'testuser' });
+
+  // seed a new test user directly
+  const passwordHash = await bcrypt.hash('s3cret', 10);
+  await new User({
+    name:         'Test User',
+    email:        'test@example.com',
+    username:     'testuser',
+    passwordHash,             
+  }).save();
 });
 
 afterAll(async () => {
-  // Clean up the test user
+  // clean up
   await User.deleteOne({ username: 'testuser' });
-  // Disconnect from the database
   await mongoose.disconnect();
 });
 
 describe('POST /login', () => {
   it('returns 200 and a token for valid credentials', async () => {
     const res = await request(app)
-      .post('/login')
+      .post('/login')   
       .send({ username: 'testuser', password: 's3cret' })
       .expect(200)
       .expect('Content-Type', /application\/json/);
@@ -39,7 +41,7 @@ describe('POST /login', () => {
     expect(res.body).toHaveProperty('token');
     expect(res.body).toMatchObject({
       username: 'testuser',
-      name: 'Test User'
+      name:     'Test User'
     });
   });
 
