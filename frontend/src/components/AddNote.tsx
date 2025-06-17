@@ -27,6 +27,7 @@ export default function AddNote() {
       setNewTitle('');
       setNewContent('');
       setAdding(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       dispatch({ type: 'SET_NOTIFICATION', payload: 'Failed to add note' });
     }
