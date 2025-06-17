@@ -1,4 +1,3 @@
-// services/auth.ts
 import axios from "axios";
 
 // Define the structure of the response we expect from the login endpoint

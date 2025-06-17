@@ -1,4 +1,3 @@
-// src/services/notesLoader.ts
 import axios from 'axios';
 import { Note } from '../contexts/NotesContext';
 
@@ -36,7 +35,7 @@ export async function fetchNotesWithCache(
         type: 'SET_NOTES',
         payload: {
           notes: res.data.notes,
-          totalPages: res.data.pages, // או Math.ceil(res.data.total / 10)
+          totalPages: res.data.pages,
         },
       });
       dispatch({
