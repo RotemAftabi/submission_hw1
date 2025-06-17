@@ -12,6 +12,7 @@ export function getPaginationWindow(currentPage: number): number[] {
 export async function fetchNotesWithCache(
   currentPage: number,
   cache: Record<number, Note[]>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dispatch: any,
   totalPages: number,
   backendUrl: string
@@ -30,6 +31,7 @@ export async function fetchNotesWithCache(
         params: { _page: currentPage, _per_page: 10 },
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const total = parseInt(res.headers['x-total-count'], 10);
       dispatch({
         type: 'SET_NOTES',

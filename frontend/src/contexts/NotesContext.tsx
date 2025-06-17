@@ -5,7 +5,6 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react';
-import axios from 'axios';
 import { fetchNotesWithCache } from '../services/notesLoader';
 
 
