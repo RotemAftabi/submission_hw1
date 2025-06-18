@@ -12,6 +12,7 @@ import Me from "./pages/Me";
 
 function App() {
   return (
+    <NotesProvider>
       <Router>
         <Notification />
         <Routes>
@@ -21,6 +22,7 @@ function App() {
           <Route path="/me" element={<Me />} /> {}
         </Routes>
       </Router>
+    </NotesProvider>
   );
 }
 
