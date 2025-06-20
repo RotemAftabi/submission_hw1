@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useNotes } from "../contexts/NotesContext";
+// import { useNotes } from "../contexts/NotesContext";
 import AddNote from "../components/AddNote";
 import NoteList from "../components/NoteList";
 import Pagination from "../components/Pagination";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Home() {
-  const { state, dispatch } = useNotes();
-  const { user } = state;
+  // const { state, dispatch } = useNotes();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -15,17 +16,21 @@ export default function Home() {
 
       {user ? (
         <>
-          <button data-testid="logout" onClick={() => dispatch({ type: "LOGOUT" })}>
-            Logout
-          </button>
+          <button onClick={logout}>Logout</button>
           <AddNote />
         </>
       ) : (
         <>
-          <button data-testid="go_to_login_button" onClick={() => navigate("/login")}>
+          <button
+            data-testid="go_to_login_button"
+            onClick={() => navigate("/login")}
+          >
             Go to Login
           </button>
-          <button data-testid="go_to_create_user_button" onClick={() => navigate("/create-user")}>
+          <button
+            data-testid="go_to_create_user_button"
+            onClick={() => navigate("/create-user")}
+          >
             Create New User
           </button>
         </>

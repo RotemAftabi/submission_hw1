@@ -1,34 +1,42 @@
-import { useState } from 'react';
-import { useNotes } from '../contexts/NotesContext';
-import { addNote } from '../services/notes';
+import { useState } from "react";
+import { useNotes } from "../contexts/NotesContext";
+import { addNote } from "../services/notes";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AddNote() {
   const { dispatch } = useNotes();
   const [adding, setAdding] = useState(false);
-  const [newContent, setNewContent] = useState('');
-  const [newTitle, setNewTitle] = useState('');
+  const [newContent, setNewContent] = useState("");
+  const [newTitle, setNewTitle] = useState("");
 
-  const token = localStorage.getItem('user-token'); // אפשר גם מ־state
-
+  // const token = localStorage.getItem("user-token"); // אפשר גם מ־state
+  const { token } = useAuth();
+  console.log("Token in AddNote:", token);
   const handleAddNote = async () => {
     if (!token) {
-      dispatch({ type: 'SET_NOTIFICATION', payload: 'You must be logged in' });
+      dispatch({ type: "SET_NOTIFICATION", payload: "You must be logged in" });
       return;
     }
 
     try {
+      console.log(
+        "Adding note with title:",
+        newTitle,
+        "and content:",
+        newContent
+      );
       const created = await addNote(
-        { title: newTitle || 'Untitled', content: newContent },
+        { title: newTitle || "Untitled", content: newContent },
         token
       );
-      dispatch({ type: 'ADD_NOTE', payload: created });
-      dispatch({ type: 'SET_NOTIFICATION', payload: 'Added a new note' });
-      setNewTitle('');
-      setNewContent('');
+      dispatch({ type: "ADD_NOTE", payload: created });
+      dispatch({ type: "SET_NOTIFICATION", payload: "Added a new note" });
+      setNewTitle("");
+      setNewContent("");
       setAdding(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      dispatch({ type: 'SET_NOTIFICATION', payload: 'Failed to add note' });
+      dispatch({ type: "SET_NOTIFICATION", payload: "Failed to add note" });
     }
   };
 
@@ -50,7 +58,10 @@ export default function AddNote() {
       <button name="text_input_save_new_note" onClick={handleAddNote}>
         Save
       </button>
-      <button name="text_input_cancel_new_note" onClick={() => setAdding(false)}>
+      <button
+        name="text_input_cancel_new_note"
+        onClick={() => setAdding(false)}
+      >
         Cancel
       </button>
     </div>

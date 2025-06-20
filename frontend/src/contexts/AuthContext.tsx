@@ -18,7 +18,7 @@ export interface User {
 interface AuthContextValue {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<boolean>;
   register: (
     user: Omit<User, "username"> & { username: string; password: string }
   ) => Promise<void>;
@@ -36,49 +36,57 @@ interface Props {
 export const AuthProvider = ({ children }: Props): JSX.Element => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
-    const stored = localStorage.getItem("token");
-    return stored ?? null;
+    const stored = localStorage.getItem("user-token");
+    // now in stored find the value of "token" key:
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        console.log("Parsed token from localStorage:", parsed);
+        return parsed.token || null; // Assuming the token is stored under the key "token"
+      } catch (error) {
+        console.error("Failed to parse token from localStorage:", error);
+        return null;
+      }
+    }
   });
 
   //    When the provider mounts try to read localStorage if a token already exists
 
   useEffect(() => {
-    if (!token) return;
-
-    (async () => {
-      try {
-        const profile = await authService.me(token);
-        setUser(profile);
-      } catch {
-        // Token is invalid, wipe it out.
-        logout();
-      }
-    })();
-  }, []);
-
-  /**
-   * Whenever the token changes, automatically attach/detach the
-   * Authorization header to every axios request, so the rest of the
-   * codebase doesn’t need to think about it.
-   */
-  useEffect(() => {
-    if (token) {
+    if (token && user) {
       axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-      localStorage.setItem("token", token);
+      localStorage.setItem(
+        "user-token",
+        JSON.stringify({
+          token,
+          name: user.name,
+          email: user.email,
+          username: user.username,
+        })
+      );
     } else {
       delete axios.defaults.headers.common.Authorization;
-      localStorage.removeItem("token");
+      localStorage.removeItem("user-token");
     }
-  }, [token]);
+  }, [token, user]);
 
-  const login = async (username: string, password: string) => {
-    const {
-      token: newToken,
-      name,
-      email,
-    } = await authService.login(username, password);
-    setToken(newToken);
-    setUser({ name, email, username });
+  const login = async (
+    username: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const {
+        token: newToken,
+        name,
+        email,
+      } = await authService.login(username, password);
+      setToken(newToken);
+      setUser({ name, email, username });
+      return true;
+    } catch (err) {
+      console.error("Login failed:", err);
+      return false;
+    }
   };
 
   const register = async (

@@ -46,20 +46,20 @@ export const createUser = async (data: {
 };
 
 // "me" function to get current user details from the backend
-export const me = async (
-  token: string
-): Promise<{
-  name: string;
-  email: string;
-  username: string;
-}> => {
-  const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+// export const me = async (
+//   token: string
+// ): Promise<{
+//   name: string;
+//   email: string;
+//   username: string;
+// }> => {
+//   const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/me`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
 
-  if (response.status !== 200) {
-    throw new Error("Failed to fetch user details");
-  }
+//   if (response.status !== 200) {
+//     throw new Error("Failed to fetch user details");
+//   }
 
-  return response.data;
-};
+//   return response.data;
+// };
