@@ -17,19 +17,12 @@ export interface Note {
   };
 }
 
-interface User {
-  name: string;
-  email: string;
-  username: string;
-  token: string;
-}
-
 interface State {
   notes: Note[];
   totalPages: number;
   currentPage: number;
   notification: string;
-  user: User | null;
+  refreshCache: boolean; // Used to trigger cache refresh, no regard to value.
 }
 
 type Action =
@@ -39,15 +32,14 @@ type Action =
   | { type: "DELETE_NOTE"; payload: string }
   | { type: "SET_PAGE"; payload: number }
   | { type: "SET_NOTIFICATION"; payload: string }
-  | { type: "SET_USER"; payload: { user: User; token: string } }
-  | { type: "LOGOUT" };
+  | { type: "TRIGGER_REFRESH_CACHE" };
 
 const initialState: State = {
   notes: [],
   totalPages: 1,
   currentPage: 1,
   notification: "",
-  user: null,
+  refreshCache: false,
 };
 
 function reducer(state: State, action: Action): State {
@@ -80,10 +72,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, currentPage: action.payload };
     case "SET_NOTIFICATION":
       return { ...state, notification: action.payload };
-    case "SET_USER":
-      return { ...state, user: action.payload.user };
-    case "LOGOUT":
-      return { ...state, user: null };
+    case "TRIGGER_REFRESH_CACHE":
+      return { ...state, refreshCache: !state.refreshCache };
     default:
       return state;
   }
@@ -93,30 +83,14 @@ const NotesContext = createContext<
   | {
       state: State;
       dispatch: React.Dispatch<Action>;
-      login: (username: string, password: string) => Promise<boolean>;
-      logout: () => void;
     }
   | undefined
 >(undefined);
 
 export const NotesProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user-token");
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        dispatch({
-          type: "SET_USER",
-          payload: { user: parsed, token: parsed.token },
-        });
-      } catch {
-        console.error("Failed to parse saved user");
-      }
-    }
-  }, []);
-
+  const page = state.currentPage;
+  // const cache = useNoteCache(page);
   useEffect(() => {
     async function fetchNotes() {
       try {
@@ -142,34 +116,8 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     fetchNotes();
   }, [state.currentPage]);
 
-  const login = async (
-    username: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/login`,
-        {
-          username,
-          password,
-        }
-      );
-      const user = res.data;
-      localStorage.setItem("user-token", JSON.stringify(user));
-      dispatch({ type: "SET_USER", payload: { user, token: user.token } });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const logout = () => {
-    localStorage.removeItem("user-token");
-    dispatch({ type: "LOGOUT" });
-  };
-
   return (
-    <NotesContext.Provider value={{ state, dispatch, login, logout }}>
+    <NotesContext.Provider value={{ state, dispatch }}>
       {children}
     </NotesContext.Provider>
   );

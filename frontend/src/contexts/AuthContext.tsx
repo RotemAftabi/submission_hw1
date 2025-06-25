@@ -1,13 +1,24 @@
 import React, {
   createContext,
   useContext,
-  useState,
+  useReducer,
   useEffect,
+  useState,
   ReactNode,
-  JSX,
 } from "react";
 import axios from "axios";
 import * as authService from "../services/auth";
+
+// Types
+export interface Note {
+  _id: string;
+  title: string;
+  content: string;
+  author: {
+    name: string;
+    email: string;
+  };
+}
 
 export interface User {
   name: string;
@@ -15,6 +26,15 @@ export interface User {
   username: string;
 }
 
+interface State {
+  notes: Note[];
+  totalPages: number;
+  currentPage: number;
+  notification: string;
+  refreshCounter: number; // Used to trigger cache refresh, no regard to value.
+}
+
+// AuthContext types
 interface AuthContextValue {
   user: User | null;
   token: string | null;
@@ -23,52 +43,143 @@ interface AuthContextValue {
     user: Omit<User, "username"> & { username: string; password: string }
   ) => Promise<void>;
   logout: () => void;
+  state: State;
+  dispatch: React.Dispatch<Action>;
 }
 
-export const AuthContext = createContext<AuthContextValue | undefined>(
-  undefined
-);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// Actions
+type Action =
+  | { type: "SET_NOTES"; payload: { notes: Note[]; totalPages: number } }
+  | { type: "ADD_NOTE"; payload: Note }
+  | { type: "UPDATE_NOTE"; payload: Note }
+  | { type: "DELETE_NOTE"; payload: string }
+  | { type: "SET_PAGE"; payload: number }
+  | { type: "SET_NOTIFICATION"; payload: string }
+  | { type: "TRIGGER_REFRESH_CACHE" };
+
+const initialState: State = {
+  notes: [],
+  totalPages: 1,
+  currentPage: 1,
+  notification: "",
+  refreshCounter: 0,
+};
+
+function reducer(state: State, action: Action): State {
+  console.log("Reducer got state:", state);
+  console.log("Reducer got action:", action);
+  switch (action.type) {
+    case "SET_NOTES": {
+      const { notes, totalPages } = action.payload;
+      return { ...state, notes, totalPages };
+    }
+    case "ADD_NOTE":
+      return {
+        ...state,
+        notes: [action.payload, ...(state.notes || [])],
+        notification: "Added a new note",
+      };
+    case "UPDATE_NOTE":
+      return {
+        ...state,
+        notes: state.notes.map((n) =>
+          n._id === action.payload._id ? action.payload : n
+        ),
+        notification: "Note updated",
+      };
+    case "DELETE_NOTE":
+      return {
+        ...state,
+        notes: state.notes.filter((n) => n._id !== action.payload),
+        notification: "Note deleted",
+      };
+    case "SET_PAGE":
+      return { ...state, currentPage: action.payload };
+    case "SET_NOTIFICATION":
+      return { ...state, notification: action.payload };
+    case "TRIGGER_REFRESH_CACHE":
+      return {
+        ...state,
+        refreshCounter: (state.refreshCounter ?? 0) + 1,
+      };
+    default:
+      return state;
+  }
+}
 
 interface Props {
   children: ReactNode;
 }
 
-export const AuthProvider = ({ children }: Props): JSX.Element => {
+export const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
     const stored = localStorage.getItem("user-token");
-    // now in stored find the value of "token" key:
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        console.log("Parsed token from localStorage:", parsed);
-        return parsed.token || null; // Assuming the token is stored under the key "token"
-      } catch (error) {
-        console.error("Failed to parse token from localStorage:", error);
+        return parsed.token || null;
+      } catch (err) {
         return null;
       }
     }
+    return null;
   });
 
-  //    When the provider mounts try to read localStorage if a token already exists
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
     if (token && user) {
       axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-      localStorage.setItem(
-        "user-token",
-        JSON.stringify({
-          token,
-          name: user.name,
-          email: user.email,
-          username: user.username,
-        })
-      );
+      localStorage.setItem("user-token", JSON.stringify({ token, ...user }));
     } else {
       delete axios.defaults.headers.common.Authorization;
       localStorage.removeItem("user-token");
     }
   }, [token, user]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("user-token");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setToken(parsed.token);
+        setUser({
+          name: parsed.name,
+          email: parsed.email,
+          username: parsed.username,
+        });
+      } catch {
+        console.error("Failed to parse user-token from localStorage");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    async function fetchNotes() {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/notes`,
+          {
+            params: { _page: state.currentPage, _per_page: 10 },
+          }
+        );
+        const total = parseInt(res.headers["x-total-count"], 10);
+        dispatch({
+          type: "SET_NOTES",
+          payload: { notes: res.data.notes, totalPages: Math.ceil(total / 10) },
+        });
+      } catch (err) {
+        dispatch({
+          type: "SET_NOTIFICATION",
+          payload: "Failed to fetch notes",
+        });
+      }
+    }
+    fetchNotes();
+  }, [state.currentPage]);
 
   const login = async (
     username: string,
@@ -84,7 +195,6 @@ export const AuthProvider = ({ children }: Props): JSX.Element => {
       setUser({ name, email, username });
       return true;
     } catch (err) {
-      console.error("Login failed:", err);
       return false;
     }
   };
@@ -93,7 +203,6 @@ export const AuthProvider = ({ children }: Props): JSX.Element => {
     data: Omit<User, "username"> & { username: string; password: string }
   ) => {
     await authService.createUser(data);
-    // After registration, user is redirected to login page
   };
 
   const logout = () => {
@@ -101,20 +210,22 @@ export const AuthProvider = ({ children }: Props): JSX.Element => {
     setUser(null);
   };
 
-  const value: AuthContextValue = {
-    user,
-    token,
-    login,
-    register,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{ user, token, login, register, logout, state, dispatch }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// Custom hook
 export const useAuth = (): AuthContextValue => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
+};
+export const useNotes = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useNotes must be used within NotesProvider");
+  return context;
 };

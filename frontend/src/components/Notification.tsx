@@ -1,4 +1,5 @@
-import { useNotes } from '../contexts/NotesContext';
+// import { useNotes } from "../contexts/NotesContext";
+import { useNotes } from "../contexts/AuthContext";
 
 export default function Notification() {
   const { state } = useNotes();

@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { useNotes } from "../contexts/NotesContext";
+// import { useNotes } from "../contexts/NotesContext";
 import { addNote } from "../services/notes";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function AddNote() {
-  const { dispatch } = useNotes();
+  const navigate = useNavigate();
+  const { dispatch } = useAuth();
   const [adding, setAdding] = useState(false);
   const [newContent, setNewContent] = useState("");
   const [newTitle, setNewTitle] = useState("");
@@ -30,6 +32,9 @@ export default function AddNote() {
         token
       );
       dispatch({ type: "ADD_NOTE", payload: created });
+      //navigate back to home
+      dispatch({ type: "TRIGGER_REFRESH_CACHE" });
+      navigate("/");
       dispatch({ type: "SET_NOTIFICATION", payload: "Added a new note" });
       setNewTitle("");
       setNewContent("");

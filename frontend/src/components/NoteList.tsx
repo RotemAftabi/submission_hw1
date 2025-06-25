@@ -1,13 +1,15 @@
-import { useNotes } from "../contexts/NotesContext";
+// import { useNotes } from "../contexts/NotesContext";
 import { useNoteCache } from "../hooks/useNoteCache";
 import Note from "./Note";
+import { useNotes } from "../contexts/AuthContext";
 
 export default function NoteList() {
   const { state } = useNotes();
   const currentPage = state.currentPage;
+  const refreshCounter = state.refreshCounter;
 
   // קבלת הפתקים מה־cache לפי העמוד הנוכחי
-  const notes = useNoteCache(currentPage);
+  const notes = useNoteCache(currentPage, refreshCounter);
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getNotesPage } from "../services/notes"; 
+import { getNotesPage } from "../services/notes";
 
 type Note = {
   _id: string;
@@ -13,32 +13,40 @@ type Note = {
 
 type Cache = Record<number, Note[]>;
 
-export function useNoteCache(currentPage: number): Note[] {
+export function useNoteCache(
+  currentPage: number,
+  refreshCounter: number
+): Note[] {
   const [cache, setCache] = useState<Cache>({});
 
   useEffect(() => {
-    const pagesToCache = [currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2]
-      .filter((p) => p > 0);
+    const pagesToCache = [
+      currentPage - 2,
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      currentPage + 2,
+    ].filter((p) => p > 0);
 
     const fetchMissingPages = async () => {
       const newCache = { ...cache };
 
       for (const page of pagesToCache) {
-        if (!newCache[page]) {
-          try {
-            const notes = await getNotesPage(page); // מביא מהשרת לפי עמוד
-            newCache[page] = notes;
-          } catch (err) {
-            console.error("Error fetching page", page, err);
-          }
+        // if (!newCache[page]) {
+        try {
+          const notes = await getNotesPage(page); // מביא מהשרת לפי עמוד
+          newCache[page] = notes;
+        } catch (err) {
+          console.error("Error fetching page", page, err);
         }
+        // }
       }
 
       setCache(newCache);
     };
 
     fetchMissingPages();
-  }, [currentPage]);
+  }, [currentPage, refreshCounter]);
 
   return cache[currentPage] || [];
 }
