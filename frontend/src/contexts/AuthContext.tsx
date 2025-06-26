@@ -114,14 +114,30 @@ interface Props {
 }
 
 export const AuthProvider = ({ children }: Props) => {
-  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => {
     const stored = localStorage.getItem("user-token");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         return parsed.token || null;
-      } catch (err) {
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem("user-token");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        return {
+          name: parsed.name,
+          email: parsed.email,
+          username: parsed.username,
+        };
+      } catch {
         return null;
       }
     }
@@ -139,23 +155,6 @@ export const AuthProvider = ({ children }: Props) => {
       localStorage.removeItem("user-token");
     }
   }, [token, user]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("user-token");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setToken(parsed.token);
-        setUser({
-          name: parsed.name,
-          email: parsed.email,
-          username: parsed.username,
-        });
-      } catch {
-        console.error("Failed to parse user-token from localStorage");
-      }
-    }
-  }, []);
 
   useEffect(() => {
     async function fetchNotes() {
@@ -178,6 +177,7 @@ export const AuthProvider = ({ children }: Props) => {
         });
       }
     }
+
     fetchNotes();
   }, [state.currentPage]);
 
