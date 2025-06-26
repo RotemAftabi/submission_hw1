@@ -113,9 +113,8 @@ test("should navigate between pages with pagination", async ({ page }) => {
 
   await page.goto(BASE_URL);
 
-  await expect(page.locator(".note")).toHaveCount(5);
-  await page.click('button[name="next"]');
-  await expect(page.locator(".note")).toHaveCount(5);
+  await expect(page.locator(".note")).toHaveCount(10);
   await page.click('button[name="next"]');
   await expect(page.locator(".note")).toHaveCount(2);
+  await expect(page.locator('button[name="next"]')).toBeDisabled();
 });

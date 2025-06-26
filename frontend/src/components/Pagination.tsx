@@ -1,11 +1,13 @@
-import { useNotes } from '../contexts/NotesContext';
+import { useAuth } from "../contexts/AuthContext";
+import { useNotes } from "../contexts/NotesContext";
 
 export default function Pagination() {
-  const { state, dispatch } = useNotes();
+  const { state, dispatch } = useAuth();
   const { currentPage, totalPages } = state;
+  console.log("totalPages:", totalPages);
 
   const handlePageChange = (page: number) => {
-    dispatch({ type: 'SET_PAGE', payload: page });
+    dispatch({ type: "SET_PAGE", payload: page });
   };
 
   const getPageRange = (activePage: number, total: number): number[] => {
@@ -13,7 +15,13 @@ export default function Pagination() {
     if (activePage <= 3) return [1, 2, 3, 4, 5];
     if (activePage >= total - 2)
       return Array.from({ length: 5 }, (_, i) => total - 4 + i);
-    return [activePage - 2, activePage - 1, activePage, activePage + 1, activePage + 2];
+    return [
+      activePage - 2,
+      activePage - 1,
+      activePage,
+      activePage + 1,
+      activePage + 2,
+    ];
   };
 
   const pageRange = getPageRange(currentPage, totalPages);
@@ -24,7 +32,11 @@ export default function Pagination() {
         page: {currentPage} / {totalPages}
       </span>
       <div>
-        <button name="first" onClick={() => handlePageChange(1)} disabled={currentPage === 1}>
+        <button
+          name="first"
+          onClick={() => handlePageChange(1)}
+          disabled={currentPage === 1}
+        >
           first
         </button>
         <button
@@ -39,7 +51,7 @@ export default function Pagination() {
           <button
             key={page}
             name={`page-${page}`}
-            className={page === currentPage ? 'active' : 'not-active'}
+            className={page === currentPage ? "active" : "not-active"}
             onClick={() => handlePageChange(page)}
             disabled={page === currentPage}
           >

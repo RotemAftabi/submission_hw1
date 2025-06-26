@@ -185,6 +185,8 @@ export const AuthProvider = ({ children }: Props) => {
             params: { _page: state.currentPage, _per_page: 10 },
           }
         );
+        console.log("Headers:", res.headers);
+
         const total = parseInt(res.headers["x-total-count"], 10);
         dispatch({
           type: "SET_NOTES",
