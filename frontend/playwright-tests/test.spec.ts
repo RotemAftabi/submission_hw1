@@ -26,9 +26,17 @@ test.beforeEach(async ({ page }) => {
   const loginData = await loginResponse.json();
   const token = loginData.token;
 
-  await page.addInitScript((value) => {
-    window.localStorage.setItem("user-token", value);
-  }, token);
+  await page.addInitScript(
+    (userData) => {
+      window.localStorage.setItem("user-token", JSON.stringify(userData));
+    },
+    {
+      token,
+      name: "Test User",
+      email: "test@example.com",
+      username: "testuser",
+    }
+  );
 
   await page.request.post(`${API_URL}/notes`, {
     data: {

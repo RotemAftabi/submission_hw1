@@ -115,6 +115,7 @@ interface Props {
 
 export const AuthProvider = ({ children }: Props) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [initialized, setInitialized] = useState(false);
   const [token, setToken] = useState<string | null>(() => {
     const stored = localStorage.getItem("user-token");
     if (stored) {
@@ -144,6 +145,24 @@ export const AuthProvider = ({ children }: Props) => {
     }
     return null;
   });
+  // inital useEffect to load token and user from localStorage:
+  useEffect(() => {
+    const saved = localStorage.getItem("user-token");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setToken(parsed.token);
+        setUser({
+          name: parsed.name,
+          email: parsed.email,
+          username: parsed.username,
+        });
+      } catch {
+        console.error("Failed to parse user-token from localStorage");
+      }
+    }
+    setInitialized(true);
+  }, []);
 
   useEffect(() => {
     dispatch({ type: "SET_NOTIFICATION", payload: "" });
@@ -210,7 +229,7 @@ export const AuthProvider = ({ children }: Props) => {
     setToken(null);
     setUser(null);
   };
-
+  if (!initialized) return null;
   return (
     <AuthContext.Provider
       value={{ user, token, login, register, logout, state, dispatch }}

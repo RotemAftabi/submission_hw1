@@ -6,36 +6,19 @@
 # Error details
 
 ```
-Error: expect(locator).toHaveURL(expected)
-
-Locator: locator(':root')
-Expected string: "http://localhost:3000/"
-Received string: "http://localhost:3000/login"
-Call log:
-  - expect.toHaveURL with timeout 5000ms
-  - waiting for locator(':root')
-    3 × locator resolved to <html lang="en">…</html>
-      - unexpected value "http://localhost:3000/login"
-
-    at C:\Users\Study\Desktop\semester F\תכנות קצה\submission_hw3\frontend\playwright-tests\auth-flow.spec.ts:34:22
+Error: page.waitForURL: Test timeout of 3000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "http://localhost:3000/" until "load"
+============================================================
+    at C:\Users\Study\Desktop\semester F\תכנות קצה\submission_hw3\frontend\playwright-tests\auth-flow.spec.ts:33:14
 ```
 
 # Page snapshot
 
 ```yaml
-- heading "Notes" [level=1]
-- button "Logout"
-- button "Add New Note"
-- text: "page: 1 / NaN"
-- button "first" [disabled]
-- button "previous" [disabled]
-- button "1" [disabled]
-- button "2"
-- button "3"
-- button "4"
-- button "5"
-- button "next"
-- button "last"
+- textbox "Username": frontend123
+- textbox "Password": securepass
+- button "Login"
 ```
 
 # Test source
@@ -73,14 +56,13 @@ Call log:
   30 |   await page.getByTestId("login_form_username").fill(user.username);
   31 |   await page.getByTestId("login_form_password").fill(user.password);
   32 |   await page.getByTestId("login_form_login").click();
-  33 |
-> 34 |   await expect(page).toHaveURL(`${BASE_URL}/`);
-     |                      ^ Error: expect(locator).toHaveURL(expected)
-  35 |   await expect(page.getByTestId("logout")).toBeVisible();
-  36 |
-  37 |   await page.getByTestId("logout").click();
-  38 |   await expect(page).toHaveURL(`${BASE_URL}/`);
-  39 |   await expect(page.getByTestId("go_to_login_button")).toBeVisible();
-  40 | });
-  41 |
+> 33 |   await page.waitForURL(`${BASE_URL}/`);
+     |              ^ Error: page.waitForURL: Test timeout of 3000ms exceeded.
+  34 |   await expect(page.getByTestId("logout")).toBeVisible();
+  35 |
+  36 |   await page.getByTestId("logout").click();
+  37 |   await expect(page).toHaveURL(`${BASE_URL}/`);
+  38 |   await expect(page.getByTestId("go_to_login_button")).toBeVisible();
+  39 | });
+  40 |
 ```

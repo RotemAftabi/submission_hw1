@@ -16,7 +16,9 @@ export default function Home() {
 
       {user ? (
         <>
-          <button onClick={logout}>Logout</button>
+          <button data-testid="logout" onClick={logout}>
+            Logout
+          </button>
           <AddNote />
         </>
       ) : (

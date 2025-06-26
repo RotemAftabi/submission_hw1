@@ -30,8 +30,7 @@ test("auth flow: register → login → logout", async ({ page }) => {
   await page.getByTestId("login_form_username").fill(user.username);
   await page.getByTestId("login_form_password").fill(user.password);
   await page.getByTestId("login_form_login").click();
-
-  await expect(page).toHaveURL(`${BASE_URL}/`);
+  await page.waitForURL(`${BASE_URL}/`);
   await expect(page.getByTestId("logout")).toBeVisible();
 
   await page.getByTestId("logout").click();
