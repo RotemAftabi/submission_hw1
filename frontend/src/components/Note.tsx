@@ -33,6 +33,10 @@ export default function Note({ _id, title, content, author }: NoteProps) {
   };
 
   const handleSave = async () => {
+    if (!token) {
+      dispatch({ type: "SET_NOTIFICATION", payload: "You must be logged in" });
+      return;
+    }
     try {
       const updated = await updateNote(
         _id,
@@ -40,6 +44,7 @@ export default function Note({ _id, title, content, author }: NoteProps) {
         token!
       );
       dispatch({ type: "UPDATE_NOTE", payload: updated });
+      dispatch({ type: "TRIGGER_REFRESH_CACHE" });
       dispatch({ type: "SET_NOTIFICATION", payload: "Note updated" });
       setIsEditing(false);
     } catch (error) {

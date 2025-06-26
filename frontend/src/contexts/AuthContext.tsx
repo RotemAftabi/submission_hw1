@@ -114,6 +114,7 @@ interface Props {
 }
 
 export const AuthProvider = ({ children }: Props) => {
+  const [state, dispatch] = useReducer(reducer, initialState);
   const [token, setToken] = useState<string | null>(() => {
     const stored = localStorage.getItem("user-token");
     if (stored) {
@@ -144,9 +145,9 @@ export const AuthProvider = ({ children }: Props) => {
     return null;
   });
 
-  const [state, dispatch] = useReducer(reducer, initialState);
-
   useEffect(() => {
+    dispatch({ type: "SET_NOTIFICATION", payload: "" });
+
     if (token && user) {
       axios.defaults.headers.common.Authorization = `Bearer ${token}`;
       localStorage.setItem("user-token", JSON.stringify({ token, ...user }));
