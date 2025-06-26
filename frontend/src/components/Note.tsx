@@ -11,16 +11,21 @@ type NoteProps = {
 };
 
 export default function Note({ _id, title, content, author }: NoteProps) {
-  const { dispatch } = useAuth();
+  const { dispatch, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
 
-  const token = localStorage.getItem("user-token"); // או מתוך context אם את שומרת שם
-
   const handleDelete = async () => {
+    if (!token) {
+      dispatch({ type: "SET_NOTIFICATION", payload: "You must be logged in" });
+      return;
+    }
+
     try {
       await deleteNote(_id, token!);
       dispatch({ type: "DELETE_NOTE", payload: _id });
+      dispatch({ type: "TRIGGER_REFRESH_CACHE" });
+
       dispatch({ type: "SET_NOTIFICATION", payload: "Note deleted" });
     } catch (error) {
       dispatch({ type: "SET_NOTIFICATION", payload: "Failed to delete note" });

@@ -3,11 +3,10 @@ import { addNote } from "../services/notes";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AddNote() {
-  const { dispatch } = useAuth();
+  const { dispatch, token } = useAuth();
   const [adding, setAdding] = useState(false);
   const [newContent, setNewContent] = useState("");
   const [newTitle, setNewTitle] = useState("");
-  const { token } = useAuth();
   console.log("Token in AddNote:", token);
   const handleAddNote = async () => {
     if (!token) {
@@ -16,12 +15,6 @@ export default function AddNote() {
     }
 
     try {
-      console.log(
-        "Adding note with title:",
-        newTitle,
-        "and content:",
-        newContent
-      );
       const created = await addNote(
         { title: newTitle || "Untitled", content: newContent },
         token
