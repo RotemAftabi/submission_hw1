@@ -35,15 +35,16 @@ export default function AddNote() {
     <div>
       <input
         type="text"
-        placeholder="Title"
+        placeholder="Title (e.g. <h1>Headline</h1>)"
         value={newTitle}
         onChange={(e) => setNewTitle(e.target.value)}
         name="text_input_title_new_note"
       />
-      <input
-        type="text"
+      <textarea
         value={newContent}
         name="text_input_new_note"
+        placeholder="Enter HTML here, e.g. <b>bold</b>, <i>italic</i>, <img src='https://…'/>"
+        rows={5}
         onChange={(e) => setNewContent(e.target.value)}
       />
       <button name="text_input_save_new_note" onClick={handleAddNote}>

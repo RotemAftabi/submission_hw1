@@ -77,7 +77,10 @@ export default function Note({ _id, title, content, author }: NoteProps) {
         </>
       ) : (
         <>
-          <p>{content}</p>
+          <div
+            className="note-content"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
           <button
             data-testid={`edit-${_id}`}
             onClick={() => setIsEditing(true)}
