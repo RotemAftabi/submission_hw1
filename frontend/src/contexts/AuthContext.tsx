@@ -47,7 +47,9 @@ interface AuthContextValue {
   dispatch: React.Dispatch<Action>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(
+  undefined
+);
 
 // Actions
 type Action =

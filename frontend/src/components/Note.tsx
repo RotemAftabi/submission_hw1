@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { deleteNote, updateNote } from "../services/notes";
+import { sanitizeHtml } from "./sanitizeHtml";
 
 type NoteProps = {
   _id: string;
@@ -14,6 +15,9 @@ export default function Note({ _id, title, content, author }: NoteProps) {
   const { dispatch, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
+
+  // for debugging purposes: later to be incorporated in the switch
+  const [sanitize, setSanitize] = useState(true);
 
   const handleDelete = async () => {
     if (!token) {
@@ -79,7 +83,9 @@ export default function Note({ _id, title, content, author }: NoteProps) {
         <>
           <div
             className="note-content"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{
+              __html: sanitize ? sanitizeHtml(content) : content,
+            }}
           />
           <button
             data-testid={`edit-${_id}`}
