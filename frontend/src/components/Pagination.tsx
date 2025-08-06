@@ -1,10 +1,8 @@
 import { useAuth } from "../contexts/AuthContext";
-import { useNotes } from "../contexts/NotesContext";
 
 export default function Pagination() {
   const { state, dispatch } = useAuth();
   const { currentPage, totalPages } = state;
-  console.log("totalPages:", totalPages);
 
   const handlePageChange = (page: number) => {
     dispatch({ type: "SET_PAGE", payload: page });

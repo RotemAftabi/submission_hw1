@@ -73,12 +73,8 @@ const initialState: State = {
 };
 
 function reducer(state: State, action: Action): State {
-  console.log("Reducer got state:", state);
-  console.log("Reducer got action:", action);
   switch (action.type) {
     case "TOGGLE_SANITIZE":
-      console.log("Toggling sanitize state");
-      console.log("Current sanitize state:", state.sanitize);
       return { ...state, sanitize: !state.sanitize };
     case "SET_NOTES": {
       const { notes, totalPages } = action.payload;
@@ -194,7 +190,6 @@ export const AuthProvider = ({ children }: Props) => {
             params: { _page: state.currentPage, _per_page: 10 },
           }
         );
-        console.log("Headers:", res.headers);
 
         const total = parseInt(res.headers["x-total-count"], 10);
         dispatch({

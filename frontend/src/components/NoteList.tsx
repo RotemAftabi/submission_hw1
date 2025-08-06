@@ -31,6 +31,7 @@ export default function NoteList() {
       <label>
         <input
           type="checkbox"
+          name="toggle_sanitize"
           checked={state.sanitize}
           onChange={(e) => dispatch({ type: "TOGGLE_SANITIZE" })}
         />

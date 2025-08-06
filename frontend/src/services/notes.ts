@@ -13,8 +13,6 @@ export async function addNote(
   note: { title: string; content: string },
   token: string
 ) {
-  console.log("Adding note:", note);
-  console.log("Using token (addnote):", token);
   const response = await axios.post(`${BASE_URL}/notes`, note, {
     headers: {
       Authorization: `Bearer ${token}`,

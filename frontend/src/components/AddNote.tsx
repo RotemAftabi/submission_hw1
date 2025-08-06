@@ -7,7 +7,6 @@ export default function AddNote() {
   const [adding, setAdding] = useState(false);
   const [newContent, setNewContent] = useState("");
   const [newTitle, setNewTitle] = useState("");
-  console.log("Token in AddNote:", token);
   const handleAddNote = async () => {
     if (!token) {
       dispatch({ type: "SET_NOTIFICATION", payload: "You must be logged in" });
