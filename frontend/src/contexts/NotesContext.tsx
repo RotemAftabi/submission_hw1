@@ -23,6 +23,7 @@ interface State {
   currentPage: number;
   notification: string;
   refreshCache: boolean; // Used to trigger cache refresh, no regard to value.
+  sanitize: boolean;
 }
 
 type Action =
@@ -32,7 +33,8 @@ type Action =
   | { type: "DELETE_NOTE"; payload: string }
   | { type: "SET_PAGE"; payload: number }
   | { type: "SET_NOTIFICATION"; payload: string }
-  | { type: "TRIGGER_REFRESH_CACHE" };
+  | { type: "TRIGGER_REFRESH_CACHE" }
+  | { type: "TOGGLE_SANITIZE" };
 
 const initialState: State = {
   notes: [],
@@ -40,10 +42,13 @@ const initialState: State = {
   currentPage: 1,
   notification: "",
   refreshCache: false,
+  sanitize: true,
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "TOGGLE_SANITIZE":
+      return { ...state, sanitize: !state.sanitize };
     case "SET_NOTES": {
       const { notes, totalPages } = action.payload;
       return { ...state, notes, totalPages };

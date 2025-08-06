@@ -32,6 +32,7 @@ interface State {
   currentPage: number;
   notification: string;
   refreshCounter: number; // Used to trigger cache refresh, no regard to value.
+  sanitize: boolean;
 }
 
 // AuthContext types
@@ -59,7 +60,8 @@ type Action =
   | { type: "DELETE_NOTE"; payload: string }
   | { type: "SET_PAGE"; payload: number }
   | { type: "SET_NOTIFICATION"; payload: string }
-  | { type: "TRIGGER_REFRESH_CACHE" };
+  | { type: "TRIGGER_REFRESH_CACHE" }
+  | { type: "TOGGLE_SANITIZE" };
 
 const initialState: State = {
   notes: [],
@@ -67,12 +69,17 @@ const initialState: State = {
   currentPage: 1,
   notification: "",
   refreshCounter: 0,
+  sanitize: true,
 };
 
 function reducer(state: State, action: Action): State {
   console.log("Reducer got state:", state);
   console.log("Reducer got action:", action);
   switch (action.type) {
+    case "TOGGLE_SANITIZE":
+      console.log("Toggling sanitize state");
+      console.log("Current sanitize state:", state.sanitize);
+      return { ...state, sanitize: !state.sanitize };
     case "SET_NOTES": {
       const { notes, totalPages } = action.payload;
       return { ...state, notes, totalPages };

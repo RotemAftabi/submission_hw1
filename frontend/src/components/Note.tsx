@@ -12,12 +12,11 @@ type NoteProps = {
 };
 
 export default function Note({ _id, title, content, author }: NoteProps) {
-  const { dispatch, token } = useAuth();
+  const { dispatch, state, token } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
 
-  // for debugging purposes: later to be incorporated in the switch
-  const [sanitize, setSanitize] = useState(true);
+  const sanitize = state.sanitize;
 
   const handleDelete = async () => {
     if (!token) {
