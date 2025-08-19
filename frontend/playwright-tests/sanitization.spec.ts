@@ -14,7 +14,36 @@ test.describe("XSS Keylogger Test", () => {
        }
      ">`;
 
+  let logs: string[] = [];
+
+  test.beforeEach(async ({ page }) => {
+    // Reset logs before each test
+    logs = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "log") logs.push(msg.text());
+    });
+
+    // Reset notes and close any previous pages
+    await page.request.delete(`${API_URL}/test/reset-notes`);
+    await page.context().clearCookies();
+
+    // Create a fresh user for each test
+    await page.request.post(`${API_URL}/users`, {
+      data: {
+        name: "Test User",
+        email: "test@example.com",
+        username: "testuser",
+        password: "testpass",
+      },
+    });
+  });
+
   test("Keylogger is blocked when sanitize is ON", async ({ page }) => {
+    const logs: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "log") logs.push(msg.text());
+    });
+
     await page.request.delete(`${API_URL}/test/reset-notes`);
 
     // Create test user
@@ -50,16 +79,24 @@ test.describe("XSS Keylogger Test", () => {
     );
 
     await page.goto(BASE_URL);
+    await page.waitForLoadState("networkidle");
 
     // Add a malicious note
     await page.click('button[name="add_new_note"]');
+    await page.waitForSelector('textarea[name="text_input_new_note"]');
     await page.fill('textarea[name="text_input_new_note"]', keyloggerPayload);
-    await page.click('button[name="text_input_save_new_note"]');
+    await page.waitForTimeout(500); // Give time for the textarea to update
+    // Save note and verify it was added
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/notes") && response.status() === 201
+      ),
+      page.click('button[name="text_input_save_new_note"]'),
+    ]);
 
-    const logs: string[] = [];
-    page.on("console", (msg) => {
-      if (msg.type() === "log") logs.push(msg.text());
-    });
+    // Wait for the note to appear in the DOM
+    await page.waitForSelector('div[class*="note"]');
 
     await page.keyboard.press("a");
     await page.keyboard.press("b");
@@ -85,9 +122,22 @@ test.describe("XSS Keylogger Test", () => {
     await page.click('[data-testid="login_form_login"]');
 
     // Add a malicious note
+    await page.waitForSelector('button[name="add_new_note"]');
     await page.click('button[name="add_new_note"]');
+    await page.waitForSelector('textarea[name="text_input_new_note"]');
     await page.fill('textarea[name="text_input_new_note"]', keyloggerPayload);
-    await page.click('button[name="text_input_save_new_note"]');
+    await page.waitForTimeout(500); // Give time for the textarea to update
+    // Save note and verify it was added
+    await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/notes") && response.status() === 201
+      ),
+      page.click('button[name="text_input_save_new_note"]'),
+    ]);
+
+    // Wait for the note to appear in the DOM
+    await page.waitForSelector('div[class*="note"]');
 
     const sanitizeCheckbox = page.locator('input[name="toggle_sanitize"]');
     await expect(sanitizeCheckbox).toBeChecked();
