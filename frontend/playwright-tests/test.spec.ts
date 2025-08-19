@@ -51,14 +51,27 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("should display a list of notes", async ({ page }) => {
+  // Wait for notes to be visible
+  await page.waitForSelector(".note");
   const notes = page.locator(".note");
   await expect(notes).toHaveCount(1);
 });
 
 test("should add a new note", async ({ page }) => {
+  // Wait for add button to be available
+  await page.waitForSelector('button[name="add_new_note"]');
   await page.click('button[name="add_new_note"]');
-  await page.fill('input[name="text_input_new_note"]', "Playwright test note");
+
+  // Wait for input field and fill it
+  await page.waitForSelector('textarea[name="text_input_new_note"]');
+  await page.fill(
+    'textarea[name="text_input_new_note"]',
+    "Playwright test note"
+  );
+
   await page.click('button[name="text_input_save_new_note"]');
+
+  // Wait for notification and new note
   await expect(page.locator(".notification")).toHaveText("Added a new note");
   await expect(page.locator(".note").first()).toContainText(
     "Playwright test note"
