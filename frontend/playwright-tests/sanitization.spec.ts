@@ -17,11 +17,39 @@ test.describe("XSS Keylogger Test", () => {
   test("Keylogger is blocked when sanitize is ON", async ({ page }) => {
     await page.request.delete(`${API_URL}/test/reset-notes`);
 
-    // await page.goto(BASE_URL);
-    await page.goto(`${BASE_URL}/login`);
-    await page.fill('[data-testid="login_form_username"]', "testuser");
-    await page.fill('[data-testid="login_form_password"]', "testpass");
-    await page.click('[data-testid="login_form_login"]');
+    // Create test user
+    await page.request.post(`${API_URL}/users`, {
+      data: {
+        name: "Test User",
+        email: "test@example.com",
+        username: "testuser",
+        password: "testpass",
+      },
+    });
+
+    // Login via API and set token
+    const loginResponse = await page.request.post(`${API_URL}/login`, {
+      data: {
+        username: "testuser",
+        password: "testpass",
+      },
+    });
+    const loginData = await loginResponse.json();
+
+    // Set auth token in localStorage
+    await page.addInitScript(
+      (userData) => {
+        window.localStorage.setItem("user-token", JSON.stringify(userData));
+      },
+      {
+        token: loginData.token,
+        name: "Test User",
+        email: "test@example.com",
+        username: "testuser",
+      }
+    );
+
+    await page.goto(BASE_URL);
 
     // Add a malicious note
     await page.click('button[name="add_new_note"]');
